@@ -24,8 +24,7 @@ def setup_command_handlers(bot_client, clients, db, task_manager, auth_handler):
                 f"{status}\n\n"
                 "ðŸ“‹ COMMANDS:\n\n"
                 "ðŸ” LOGIN:\n"
-                "/login_user - Login with user account (phone + 2FA)\n"
-                "/login_bot - Login with bot token\n\n"
+                "/login_user - Login with user account (phone + 2FA)\n\n"
                 "âš™ï¸ CONFIGURATION:\n"
                 "/add_user_config - Setup user account forwarding\n"
                 "/add_bot_config - Setup bot account forwarding\n"
@@ -40,7 +39,7 @@ def setup_command_handlers(bot_client, clients, db, task_manager, auth_handler):
             logger.error(f"Error in start handler: {e}")
             await event.respond(MessageFormatter.format_error_message(str(e)))
     
-    # ==================== LOGIN HANDLERS ====================
+    # ==================== LOGIN HANDLER ====================
     
     @bot_client.on(events.NewMessage(pattern='/login_user'))
     async def login_user_handler(event):
@@ -67,35 +66,6 @@ def setup_command_handlers(bot_client, clients, db, task_manager, auth_handler):
             )
         except Exception as e:
             logger.error(f"Error in login_user handler: {e}")
-            await event.respond(MessageFormatter.format_error_message(str(e)))
-    
-    @bot_client.on(events.NewMessage(pattern='/login_bot'))
-    async def login_bot_handler(event):
-        try:
-            user_id = event.sender_id
-            
-            # Check if already logged in
-            already_logged = await clients.is_bot_logged_in()
-            if already_logged:
-                await event.respond("âœ… Bot account already logged in!")
-                return
-            
-            pending_auth[user_id] = {
-                "step": "token",
-                "type": "bot_login"
-            }
-            
-            await event.respond(
-                "ðŸ¤– ENTER BOT TOKEN\n\n"
-                "Get it from @BotFather:\n"
-                "1. Send /start to @BotFather\n"
-                "2. Send /newbot or select existing bot\n"
-                "3. Copy the token\n"
-                "4. Send it here\n\n"
-                "Format: 123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef"
-            )
-        except Exception as e:
-            logger.error(f"Error in login_bot handler: {e}")
             await event.respond(MessageFormatter.format_error_message(str(e)))
     
     # ==================== CONFIG HANDLERS ====================
@@ -138,15 +108,7 @@ def setup_command_handlers(bot_client, clients, db, task_manager, auth_handler):
         try:
             user_id = event.sender_id
             
-            # Check if bot is logged in
-            logged_in = await clients.is_bot_logged_in()
-            if not logged_in:
-                await event.respond(
-                    "âŒ Bot account not logged in!\n\n"
-                    "Please login first:\n/login_bot"
-                )
-                return
-            
+            # Bot is always logged in (using token)
             pending_auth[user_id] = {
                 "step": "source",
                 "type": "bot_config",
@@ -198,18 +160,18 @@ def setup_command_handlers(bot_client, clients, db, task_manager, auth_handler):
         try:
             message = (
                 "ðŸ“– HELP\n\n"
-                "ðŸ” LOGIN COMMANDS:\n"
-                "/login_user - Login with phone number\n"
-                "/login_bot - Login with bot token\n\n"
+                "ðŸ” LOGIN COMMAND:\n"
+                "/login_user - Login with phone number\n\n"
                 "âš™ï¸ CONFIG COMMANDS:\n"
-                "/add_user_config - Add user forwarding config\n"
-                "/add_bot_config - Add bot forwarding config\n"
+                "/add_user_config - Add user account forwarding\n"
+                "/add_bot_config - Add bot account forwarding\n"
                 "/list_configs - View all configs\n\n"
                 "ðŸ“Š MANAGEMENT:\n"
                 "/status - Show active forwarding tasks\n"
                 "/start - Show main menu\n\n"
-                "ðŸ’¡ TIPS:\n"
-                "â€¢ Login first before adding configs\n"
+                "ðŸ’¡ NOTES:\n"
+                "â€¢ Bot account is auto-logged in (no login needed)\n"
+                "â€¢ User account requires phone + 2FA\n"
                 "â€¢ Each config = one forwarding path\n"
                 "â€¢ You can have multiple configs\n"
             )
@@ -306,28 +268,6 @@ def setup_command_handlers(bot_client, clients, db, task_manager, auth_handler):
                     except Exception as e:
                         logger.error(f"Error logging in: {e}")
                         await event.respond(MessageFormatter.format_error_message(f"Login failed: {e}"))
-                        del pending_auth[user_id]
-            
-            # ========== BOT LOGIN FLOW ==========
-            elif auth_type == "bot_login":
-                if step == "token":
-                    try:
-                        success, result = await auth_handler.initiate_bot_login(message_text)
-                        
-                        if success:
-                            await event.respond(
-                                f"âœ… {result}\n\n"
-                                "Bot account is now active!\n"
-                                "You can now:\n"
-                                "/add_bot_config - Setup forwarding"
-                            )
-                        else:
-                            await event.respond(MessageFormatter.format_error_message(result))
-                        
-                        del pending_auth[user_id]
-                    except Exception as e:
-                        logger.error(f"Error logging in bot: {e}")
-                        await event.respond(MessageFormatter.format_error_message(f"Bot login failed: {e}"))
                         del pending_auth[user_id]
             
             # ========== USER CONFIG FLOW ==========
@@ -429,4 +369,4 @@ def setup_command_handlers(bot_client, clients, db, task_manager, auth_handler):
                         del pending_auth[user_id]
         
         except Exception as e:
-            logger.error(f"Error in message handler: {e}")                                             
+            logger.error(f"Error in message handler: {e}")                                      
