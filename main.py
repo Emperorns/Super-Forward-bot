@@ -55,7 +55,7 @@ logger.info(f"PORT: {PORT}")
 
 class ForwarderBot:
     def __init__(self):
-        self.clients = TelegramClients(API_ID, API_HASH)
+        self.clients = TelegramClients(API_ID, API_HASH, BOT_TOKEN)
         self.db = Database(MONGODB_URI, MONGODB_DB_NAME)
         self.task_manager = TaskManager(self.clients, self.db)
         self.auth_handler = AuthenticationHandler(self.clients, self.db)
@@ -98,9 +98,8 @@ class ForwarderBot:
             await self.clients.load_sessions(self.db)
             logger.info("Sessions loaded")
             
-            # Start both Telethon clients (if sessions exist)
+            # Start user client (if session exists)
             user_session_exists = await self.db.session_exists('user')
-            bot_session_exists = await self.db.session_exists('bot')
             
             if user_session_exists:
                 try:
@@ -111,14 +110,8 @@ class ForwarderBot:
             else:
                 logger.info("User session not found - login required")
             
-            if bot_session_exists:
-                try:
-                    await self.clients.start_bot_client()
-                    logger.info("Bot account client started")
-                except Exception as e:
-                    logger.warning(f"Could not start bot client: {e}")
-            else:
-                logger.info("Bot session not found - login required")
+            # Bot is initialized from token (no session needed)
+            logger.info("Bot account ready (using token)")
             
             # Initialize bot client for handlers
             self.bot_client = TelegramClient('bot_handler', API_ID, API_HASH)
@@ -175,4 +168,4 @@ async def main():
         await bot.stop()
 
 if __name__ == "__main__":
-    asyncio.run(main())            
+    asyncio.run(main())                
