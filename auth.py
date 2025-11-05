@@ -50,22 +50,6 @@ class AuthenticationHandler:
             logger.error(f"Error verifying code: {e}")
             return False, error_msg
     
-    async def initiate_bot_login(self, bot_token):
-        """Initiate bot login"""
-        try:
-            is_valid = ValidationHelper.validate_bot_token(bot_token)
-            if not is_valid:
-                return False, "Invalid bot token format"
-            
-            await self.clients.login_bot(bot_token, self.db)
-            logger.info("Bot logged in successfully")
-            return True, "Bot account logged in successfully!"
-        
-        except Exception as e:
-            error_msg = ErrorHandler.get_error_message(e)
-            logger.error(f"Error logging in bot: {e}")
-            return False, error_msg
-    
     async def check_login_status(self):
         """Check both account login status"""
         try:
@@ -81,4 +65,4 @@ class AuthenticationHandler:
             return {
                 "user_logged_in": False,
                 "bot_logged_in": False
-            }
+            }            
