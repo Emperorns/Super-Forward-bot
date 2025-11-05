@@ -4,12 +4,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Telegram API
-API_ID = int(os.getenv('API_ID', '0'))
-API_HASH = os.getenv('API_HASH', '')
+API_ID = int(os.getenv('API_ID', '22711559'))
+API_HASH = os.getenv('API_HASH', '07f916d610702eb4b0678bdf32c895c1')
 BOT_TOKEN = os.getenv('BOT_TOKEN', '')
 
 # MongoDB
-MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb://localhost:27017')
+MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://Movil:nehalsingh969797@cluster0.z9r4vyp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 MONGODB_DB_NAME = os.getenv('MONGODB_DB_NAME', 'forwarder_bot')
 
 # Rate Limiting Config
