@@ -46,14 +46,14 @@ class MessageFormatter:
     def format_task_status(task):
         """Format task status for display"""
         try:
-            config_id = task.get("config_id", "Unknown")
+            source = task.get("source_channel", "Unknown")
+            dest = task.get("dest_channel", "Unknown")
             status = task.get("status", "UNKNOWN")
             task_type = task.get("type", "unknown")
             
             progress = task.get("progress", {})
             forwarded = progress.get("forwarded_count", 0)
             total = progress.get("total_messages", 0)
-            last_msg_id = progress.get("last_forwarded_message_id", 0)
             start_time = task.get("created_at")
             
             # Calculate elapsed time
@@ -78,8 +78,11 @@ class MessageFormatter:
             }.get(status, "â“")
             
             message = (
-                f"ðŸ“Š TASK: {config_id}\n"
-                f"Type: {task_type.upper()} | Status: {status_emoji} {status}\n"
+                f"ðŸ“Š TASK\n"
+                f"From: {source}\n"
+                f"To: {dest}\n"
+                f"Type: {task_type.upper()}\n"
+                f"Status: {status_emoji} {status}\n\n"
                 f"Progress: {progress_bar}\n"
                 f"Forwarded: {forwarded:,} / {total:,}\n"
                 f"Est. Time: {time_remaining}\n"
@@ -91,33 +94,6 @@ class MessageFormatter:
             return "Error formatting status"
     
     @staticmethod
-    def format_config_list(configs):
-        """Format configuration list"""
-        try:
-            if not configs:
-                return "No configurations found."
-            
-            message = "ðŸ“‹ YOUR CONFIGURATIONS:\n\n"
-            
-            for i, config in enumerate(configs, 1):
-                config_id = config.get("_id", "Unknown")
-                source = config.get("source_channel", "Unknown")
-                dest = config.get("dest_channel", "Unknown")
-                auth = config.get("auth_method", "Unknown")
-                
-                message += (
-                    f"{i}. ID: {config_id}\n"
-                    f"   From: {source}\n"
-                    f"   To: {dest}\n"
-                    f"   Auth: {auth}\n\n"
-                )
-            
-            return message
-        except Exception as e:
-            logger.error(f"Error formatting config list: {e}")
-            return "Error formatting configuration list"
-    
-    @staticmethod
     def format_task_list(tasks):
         """Format active task list"""
         try:
@@ -126,8 +102,8 @@ class MessageFormatter:
             
             message = "ðŸ“Š ACTIVE TASKS:\n\n"
             
-            for task in tasks:
-                message += MessageFormatter.format_task_status(task) + "\n"
+            for i, task in enumerate(tasks, 1):
+                message += f"{i}. {MessageFormatter.format_task_status(task)}\n"
             
             return message
         except Exception as e:
@@ -148,38 +124,9 @@ class MessageFormatter:
     def format_login_status(user_logged_in, bot_logged_in):
         """Format login status"""
         user_status = "âœ… Logged in" if user_logged_in else "âŒ Not logged in"
-        bot_status = "âœ… Logged in" if bot_logged_in else "âŒ Not logged in"
+        bot_status = "âœ… Active" if bot_logged_in else "âŒ Not active"
         
         return (
             f"ðŸ”‘ USER ACCOUNT: {user_status}\n"
             f"ðŸ¤– BOT ACCOUNT: {bot_status}"
-        )
-    
-    @staticmethod
-    def build_task_buttons(task_id):
-        """Build inline buttons for task control"""
-        buttons = [
-            [
-                {"text": "â¸ï¸ Pause", "callback_data": f"pause_{task_id}"},
-                {"text": "â¹ï¸ Stop", "callback_data": f"stop_{task_id}"}
-            ],
-            [
-                {"text": "ðŸ”„ Refresh", "callback_data": f"refresh_{task_id}"},
-                {"text": "ðŸ—‘ï¸ Delete", "callback_data": f"delete_{task_id}"}
-            ]
-        ]
-        return buttons
-    
-    @staticmethod
-    def build_main_menu_buttons():
-        """Build main menu buttons"""
-        buttons = [
-            [
-                {"text": "ðŸ” Status", "callback_data": "status"},
-                {"text": "âš™ï¸ Manage", "callback_data": "manage"}
-            ],
-            [
-                {"text": "âž• New Task", "callback_data": "new_task"}
-            ]
-        ]
-        return buttons
+        )        
