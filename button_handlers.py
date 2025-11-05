@@ -1,5 +1,5 @@
 from telethon import events
-from telethon.types import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import logging
 from message_formatter import MessageFormatter
 
