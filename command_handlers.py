@@ -251,11 +251,19 @@ def setup_command_handlers(bot_client, clients, db, task_manager, auth_handler):
     async def message_handler(event):
         """Handle multi-step flows"""
         try:
+            # CRITICAL: Ignore messages from bot itself
+            if event.from_id is None:
+                return
+            
             if not event.is_private:
                 return
             
             user_id = event.sender_id
-            message_text = event.text.strip()
+            message_text = event.text.strip() if event.text else ""
+            
+            # Ignore messages starting with / (commands)
+            if message_text.startswith("/"):
+                return
             
             if user_id not in pending_auth:
                 return
@@ -445,4 +453,4 @@ def setup_command_handlers(bot_client, clients, db, task_manager, auth_handler):
         
         except Exception as e:
             logger.error(f"Error in message handler: {e}")
-            await event.respond(MessageFormatter.format_error_message(str(e)))                         
+            await event.respond(MessageFormatter.format_error_message(str(e)))                    
