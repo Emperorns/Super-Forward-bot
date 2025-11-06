@@ -11,7 +11,6 @@ class ValidationHelper:
         phone = phone.replace(" ", "")
         
         # Accept +<country_code><number> format
-        # Country code: 1-3 digits, number: 7-12 digits
         if phone.startswith("+") and phone[1:].isdigit() and 10 <= len(phone[1:]) <= 15:
             return True, phone
         
@@ -48,14 +47,23 @@ class ChannelValidator:
                 return False, "Invalid channel username"
             return True, identifier
         
-        # Check if it's a valid numeric ID
+        # Check if it's a valid numeric ID (starts with -100)
+        if identifier.startswith("-100"):
+            try:
+                channel_id = int(identifier)
+                return True, identifier
+            except ValueError:
+                return False, "Invalid channel ID format"
+        
+        # Also accept positive numeric IDs
         try:
             channel_id = int(identifier)
-            if channel_id < -1001000000000:  # Valid Telegram channel ID range
-                return False, "Invalid channel ID"
-            return True, identifier
+            if channel_id > 0:
+                return True, identifier
         except ValueError:
-            return False, "Channel must be username (@channel) or numeric ID"
+            pass
+        
+        return False, "Channel must be username (@channel) or numeric ID (e.g., -1002324861641)"
 
 class ErrorHandler:
     @staticmethod
@@ -77,4 +85,4 @@ class ErrorHandler:
     @staticmethod
     def log_error(error, context=""):
         """Log error with context"""
-        logger.error(f"[{context}] {type(error).__name__}: {error}")                        
+        logger.error(f"[{context}] {type(error).__name__}: {error}")            
